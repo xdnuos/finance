@@ -1,0 +1,95 @@
+{% extends "base.html" %} {% block app_content %}
+<div class="container mt-4 mb-4 p-3 d-flex justify-content-center">
+  <div class="card p-4">
+    <div class="d-flex flex-column justify-content-center align-items-center">
+      <img src="{{user.photo_url}}" height="100" width="100" alt="avatar" />
+      <span class="name mt-3">{{user.first_name}} {{user.last_name}}</span>
+      <span class="idd">@{{user.username}}</span>
+      {% if connections %} {%for connection_type in connection_types%} {%for
+      connection in connections%} {%if not connection.connect_type ==
+      connection_type.id%}
+      <div style="width: 80%">
+        <form action="/connect" method="post">
+          <div class="row mt-2 mb-2">
+            <div class="col-md-8">
+              <input
+                name="connect_type"
+                value="{{connection_type.id}}"
+                class="form-control"
+                hidden
+              />
+              <input
+                name="connect_link"
+                type="text"
+                class="form-control"
+                placeholder="Enter {{connection_type.name}} link"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary col-md-4">
+              Connect
+            </button>
+          </div>
+        </form>
+      </div>
+      {%else%}
+      <div style="width: 80%">
+        <form action="/change" method="post">
+          <div class="row mt-2 mb-2">
+            <div class="col-md-8">
+              <input
+                name="connect_type"
+                value="{{connection_type.id}}"
+                class="form-control"
+                hidden
+              />
+              <input
+                value="{{connection.connect_link}}"
+                type="text"
+                class="form-control"
+                placeholder="Enter {{connection_type.name}} link"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary col-md-4">
+              Change
+            </button>
+          </div>
+        </form>
+      </div>
+      {%endif%}{% endfor %} {% endfor %} {% else %} {%for connection_type in
+      connection_types%}
+
+      <div style="width: 80%">
+        <form action="/connect" method="post">
+          <div class="row mt-2 mb-2">
+            <div class="col-md-8">
+              <input
+                name="connect_type"
+                value="{{connection_type.id}}"
+                class="form-control"
+                hidden
+              />
+              <input
+                name="connect_link"
+                type="text"
+                class="form-control"
+                placeholder="Enter {{connection_type.name}} link"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary col-md-4">
+              Connect
+            </button>
+          </div>
+        </form>
+      </div>
+      {%endfor%} {%endif%}
+
+      <div class="px-2 rounded mt-4 date">
+        <span class="join"
+          >Joined at {{user.auth_date|timestamp_to_datetime}}</span
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

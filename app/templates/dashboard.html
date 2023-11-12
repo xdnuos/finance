@@ -1,0 +1,163 @@
+{% extends "base.html" %} {% block app_content %}
+<button
+  type="button"
+  class="btn btn-primary fixed-button btn-circle btn-xl"
+  data-bs-toggle="modal"
+  data-bs-target="#myModal"
+>
+  <iconify-icon icon="typcn:plus" width="50" height="50"></iconify-icon>
+</button>
+<button class="btn btn-warning" onclick="deleteRow()">Delete</button>
+<table
+  id="eventsTable"
+  data-toggle="table"
+  data-height="600"
+  data-url="/records"
+  data-pagination="true"
+  data-search="true"
+  data-show-refresh="true"
+  data-show-toggle="true"
+  data-show-columns="true"
+  data-toolbar="#toolbar"
+  aria-describedby="mydesc"
+>
+  <thead>
+    <tr>
+      <th data-field="state" data-checkbox="true"></th>
+      <th data-field="Name">Name</th>
+      <th data-field="Amount">Amount</th>
+      <th data-field="Type">Type</th>
+      <th data-field="Time">Time</th>
+      <th data-field="Description">Description</th>
+    </tr>
+  </thead>
+</table>
+
+<div
+  class="modal fade"
+  id="myModal"
+  tabindex="-1"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <form action="/add" method="post">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add spending</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <!-- Input field inside the modal -->
+          <div class="mb-3">
+            <label for="inputField" class="form-label">Name</label>
+            <input
+              type="text"
+              class="form-control"
+              name="name"
+              placeholder="Mua đồ ăn"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="inputField" class="form-label">Amount (x1000)</label>
+            <input
+              type="number"
+              class="form-control"
+              name="amount"
+              placeholder="200"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="inputField" class="form-label">Type</label>
+            <input
+              type="text"
+              class="form-control"
+              name="type"
+              placeholder="Ăn uống"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="inputField" class="form-label">Description</label>
+            <input
+              type="text"
+              class="form-control"
+              name="desc"
+              placeholder="Mua cho bạn"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- Submit button inside the modal -->
+          <button class="btn btn-primary" type="submit">Submit</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} {% block styles %} {{ super() }}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/bootstrap-table@1.22.1/dist/bootstrap-table.min.css"
+/>
+{% endblock %} {% block scripts %} {{ super() }}
+
+<script src="https://unpkg.com/bootstrap-table@1.22.1/dist/bootstrap-table.min.js"></script>
+<script>
+  var checkedRows = [];
+
+  $("#eventsTable").on("check.bs.table", function (e, row) {
+    checkedRows.push({ id: row.Index });
+    console.log(checkedRows);
+  });
+
+  $("#eventsTable").on("uncheck.bs.table", function (e, row) {
+    $.each(checkedRows, function (index, value) {
+      if (value.id === row.id) {
+        checkedRows.splice(index, 1);
+      }
+    });
+    console.log(checkedRows);
+  });
+
+  $("#add_cart").click(function () {
+    $("#output").empty();
+    $.each(checkedRows, function (index, value) {
+      $("#output").append(
+        $("<li></li>").text(value.id + " | " + value.name + " | " + value.forks)
+      );
+    });
+  });
+
+  function deleteRow() {
+    var formData = new FormData();
+    formData.append("row_index", JSON.stringify(checkedRows));
+    $.ajax({
+      type: "POST",
+      url: "/remove",
+      data: formData,
+      contentType: false,
+      processData: false,
+      success: function (response) {
+        // Xử lý kết quả nếu cần
+        $table = $("#eventsTable").bootstrapTable("refresh");
+      },
+      error: function (xhr, status, error) {
+        // Xử lý lỗi nếu có
+        console.error("Request failed with status:", xhr.status);
+      },
+    });
+  }
+</script>
+{% endblock %}
