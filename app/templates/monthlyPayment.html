@@ -7,38 +7,6 @@
 >
   <iconify-icon icon="typcn:plus" width="50" height="50"></iconify-icon>
 </button>
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">5 chi tiêu nhiều tiền nhất:</h5>
-          <ul id="topExpensesList"></ul>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Tổng tiền nhận được trong tháng:</h5>
-          <p id="totalIncome" class="income-text"></p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Tổng tiền đã tiêu trong tháng:</h5>
-          <p id="totalExpense" class="income-text"></p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div>
-    <canvas id="myChart" width="400" height="200"></canvas>
-  </div>
-</div>
 <div id="toolbar">
   <button class="btn btn-warning" onclick="deleteRow()">Delete</button>
 </div>
@@ -46,6 +14,7 @@
   id="eventsTable"
   data-toggle="table"
   data-height="600"
+  data-url="/monthly-records"
   data-pagination="true"
   data-search="true"
   data-show-refresh="true"
@@ -59,8 +28,7 @@
       <th data-field="state" data-checkbox="true"></th>
       <th data-field="Name">Name</th>
       <th data-field="Amount">Amount</th>
-      <th data-field="Type">Type</th>
-      <th data-field="Time">Time</th>
+      <th data-field="Day Payment">Day Payment</th>
       <th data-field="Description">Description</th>
     </tr>
   </thead>
@@ -74,7 +42,7 @@
   aria-hidden="true"
 >
   <div class="modal-dialog">
-    <form action="/add" method="post">
+    <form action="/add-monthly" method="post">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="exampleModalLabel">Add spending</h5>
@@ -106,12 +74,12 @@
             />
           </div>
           <div class="mb-3">
-            <label for="type" class="form-label">Type</label>
+            <label for="type" class="form-label">Monthly payment date</label>
             <input
               type="text"
               class="form-control"
-              name="type"
-              placeholder="Ăn uống"
+              name="day_payment"
+              placeholder="21"
             />
           </div>
           <div class="mb-3">
@@ -155,98 +123,10 @@
   href="https://unpkg.com/bootstrap-table@1.22.1/dist/bootstrap-table.min.css"
 />
 {% endblock %} {% block scripts %} {{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script src="https://unpkg.com/bootstrap-table@1.22.1/dist/bootstrap-table.min.js"></script>
 <script>
   var checkedRows = [];
-  async function fetchData() {
-    try {
-      const response = await fetch("/records");
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      // Process the data
-      console.log(data);
-      return data;
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      throw error; // Re-throw the error to handle it elsewhere if needed
-    }
-  }
-  var data = [];
-  $(document).ready(async function () {
-    var data = await fetchData();
-    $("#eventsTable").bootstrapTable("load", data);
-    //chart
-    var totalIncome = 0;
-    var totalExpense = 0;
-
-    data.forEach(function (item) {
-      var amount = parseInt(item.Amount);
-      if (amount > 0) {
-        // Thu nhập
-        totalIncome += amount;
-      } else {
-        // Chi tiêu
-        totalExpense += amount;
-      }
-    });
-    var topExpenses = data
-      .filter((item) => parseInt(item.Amount) < 0)
-      .sort((a, b) => parseInt(a.Amount) - parseInt(b.Amount))
-      .slice(0, 5);
-    var topExpensesList = document.getElementById("topExpensesList");
-    topExpenses.forEach(function (expense) {
-      var listItem = document.createElement("li");
-      listItem.textContent = expense.Name + ": " + expense.Amount;
-      topExpensesList.appendChild(listItem);
-    });
-
-    // Hiển thị tổng tiền nhận được và tổng tiền đã tiêu
-    document.getElementById("totalIncome").textContent = totalIncome;
-    document.getElementById("totalExpense").textContent = totalExpense;
-    var dailyData = {};
-
-    // Xử lý dữ liệu để nhóm theo ngày
-    data.forEach(function (item) {
-      var date = item.Time;
-      if (!dailyData[date]) {
-        dailyData[date] = 0;
-      }
-      dailyData[date] += parseInt(item.Amount);
-    });
-
-    // Chuyển đổi dữ liệu thành mảng để sử dụng cho biểu đồ
-    var dates = Object.keys(dailyData);
-    var amounts = Object.values(dailyData);
-
-    // Vẽ biểu đồ bằng Chart.js
-    var ctx = document.getElementById("myChart").getContext("2d");
-    var myChart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: dates,
-        datasets: [
-          {
-            label: "Tổng chi tiêu",
-            data: amounts,
-            backgroundColor: "rgba(75, 192, 192, 0.2)",
-            borderColor: "rgba(75, 192, 192, 1)",
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-          },
-        },
-      },
-    });
-  });
 
   $("#eventsTable").on("check.bs.table", function (e, row) {
     checkedRows.push({ id: row.Index });
@@ -262,12 +142,21 @@
     console.log(checkedRows);
   });
 
+  $("#add_cart").click(function () {
+    $("#output").empty();
+    $.each(checkedRows, function (index, value) {
+      $("#output").append(
+        $("<li></li>").text(value.id + " | " + value.name + " | " + value.forks)
+      );
+    });
+  });
+
   function deleteRow() {
     var formData = new FormData();
     formData.append("row_index", JSON.stringify(checkedRows));
     $.ajax({
       type: "POST",
-      url: "/remove",
+      url: "/remove-fixed-payment",
       data: formData,
       contentType: false,
       processData: false,
@@ -281,7 +170,6 @@
       },
     });
   }
-
   // validate
   $(document).ready(function () {
     // Function to validate the form

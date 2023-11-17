@@ -1,15 +1,13 @@
 import json
 from datetime import datetime
 
-import telebot
-
 from app import app, db
 from app.models import Connection, ConnectType, LinkType, User
-from app.telegram_function import (append_sheet, delete_row, delete_rows,
-                                   get_sheet)
+from app.telegram_function import (add_monthly_payment, append_sheet,
+                                   delete_row, delete_rows, get_row, get_sheet)
 from app.utils import extract_values
 
-bot = telebot.TeleBot(app.config["BOT_TOKEN"])
+
 def create_user(tg_data):
 	user = User.query.filter_by(id=tg_data['id']).first()
 	if user is None:
@@ -44,10 +42,14 @@ def get_connection_type(connection_type_id):
 	connection_type = ConnectType.query.filter_by(id=connection_type_id).first()
 	return connection_type
 def get_link(user_id,type):
-	connection = Connection.query.filter_by(user_id=user_id,connect_type=type).first()
-	if connection is None:
-		return None
-	return connection.connect_link
+    try:
+        connection = Connection.query.filter_by(user_id=user_id,connect_type=type).first()
+    except Exception as e:
+        print(e)
+        return None
+    if connection is None:
+        return None
+    return connection.connect_link
 def add_spending(user_id,name,amount,type,desc,sheet_name=None):
 	link = get_link(user_id,LinkType.GGSHEET.value)
 	date = datetime.now().strftime("%m/%d/%Y")
@@ -71,3 +73,10 @@ def get_records(user_id,sheet_name=None):
 		sheet_name = "{}/{}".format(datetime.now().month, datetime.now().year)
 	link = get_link(user_id,LinkType.GGSHEET.value)
 	return get_sheet(link, sheet_name)
+def add_fixed_payment(user_id,name,amount,date_payment,desc):
+	link = get_link(user_id,LinkType.GGSHEET.value)
+	data = [name, amount,date_payment,desc]
+	add_monthly_payment(link,data)
+def remove_fixed_payments(user_id,row_indexes):
+	link = get_link(user_id,LinkType.GGSHEET.value)
+	delete_rows(link, "Monthly Payment",extract_values(row_indexes, "id"))

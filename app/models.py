@@ -25,6 +25,9 @@ class Connection(db.Model):
         return '<Connection {}>'.format(self.connection_id)
     def as_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
 class ConnectType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True,nullable=False)
@@ -47,6 +50,9 @@ class MonthlyPayment(db.Model):
 class LinkType(Enum):
     GGSHEET = 1
     MESSENGER = 2
+class PaymentType(Enum):
+    EXPENSE= 1
+    INCOME = 2
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))

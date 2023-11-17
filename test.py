@@ -1,14 +1,5 @@
-def extract_values(data, key):
-    """
-    Chuyển đổi danh sách các từ điển thành danh sách các giá trị của khóa cụ thể.
+from datetime import datetime
 
-    Parameters:
-    - data: Danh sách các từ điển.
-    - key: Khóa cần trích xuất giá trị.
+current_date = datetime.now().strftime('%d')
 
-    Returns:
-    - Danh sách các giá trị của khóa cụ thể.
-    """
-    return [item[key] for item in data]
-new =extract_values([{"id":2},{"id":4}], 'id')
-print(new)
+print(current_date == '18')

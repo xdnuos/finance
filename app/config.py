@@ -10,3 +10,4 @@ class Config(object):
     BOT_TOKEN = os.environ.get("BOT_TOKEN")
     BOT_USER_NAME = os.environ.get("BOT_USER_NAME")
     URL = os.environ.get("URL")
+    SCHEDULER_API_ENABLED = True

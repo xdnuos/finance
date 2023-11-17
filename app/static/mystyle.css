@@ -25,7 +25,6 @@ body {
   text-align: center;
 }
 .card {
-  width: 800px;
   background-color: #efefef;
   border: none;
   cursor: pointer;
@@ -96,4 +95,8 @@ hr .new1 {
 
 .date {
   background-color: #ccc;
+}
+.income-text {
+  font-size: 48px;
+  font-weight: bold;
 }

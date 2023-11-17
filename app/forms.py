@@ -1,8 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, PasswordField, StringField, SubmitField
+from wtforms import (BooleanField, IntegerField, PasswordField, SelectField,
+                     StringField, SubmitField)
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 
-from app.models import User
+from app.models import PaymentType, User
 
 
 class LoginForm(FlaskForm):
@@ -27,3 +28,10 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError('Please use a different email address.')
+class SpendingForm(FlaskForm):
+    name = StringField('name', validators=[DataRequired()])
+    amount = IntegerField('amount (x1000)', validators=[DataRequired()])
+    type = StringField('type', validators=[DataRequired()])
+    desc = StringField('description')
+    # payment_type = SelectField('Payment Type')
+    payment_type = SelectField('payment', choices=[(choice.value, choice.name) for choice in PaymentType], coerce=PaymentType, validators=[DataRequired()])
